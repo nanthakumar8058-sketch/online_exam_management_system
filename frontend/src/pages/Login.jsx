@@ -11,6 +11,7 @@ const Login = () => {
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const [hasAdmin, setHasAdmin] = useState(true);
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
   
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -93,6 +94,32 @@ const Login = () => {
     }
   };
 
+  const handleForgotPasswordSubmit = async (e) => {
+    e.preventDefault();
+    if (!identifier) return toast.error('Please enter your email or ID');
+    
+    setLoading(true);
+    try {
+      const { data } = await api.post('/auth/forgotpassword', { identifier });
+      toast.success(data.message || 'Recovery email sent!', {
+        style: {
+          borderRadius: '16px',
+          background: '#0f172a',
+          color: '#fff',
+          fontWeight: 'black',
+          fontSize: '12px',
+          textTransform: 'uppercase',
+          letterSpacing: '0.1em'
+        }
+      });
+      setIsForgotPassword(false);
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to process request');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#f8fafc] px-4 relative overflow-hidden">
       {/* Dynamic Background Elements */}
@@ -112,15 +139,15 @@ const Login = () => {
             </span>
           </div>
           <h1 className="text-4xl font-black text-slate-900 tracking-tight mb-2">
-            {!hasAdmin ? 'Initial Setup' : 'Sign In'}
+            {!hasAdmin ? 'Initial Setup' : isForgotPassword ? 'Recover Account' : 'Sign In'}
           </h1>
-          <p className="text-slate-500 font-medium">
-            {!hasAdmin ? 'Create the first owner account for this system' : 'Please sign in to continue'}
+          <p className="text-slate-500 font-medium px-4">
+            {!hasAdmin ? 'Create the first owner account for this system' : isForgotPassword ? 'Enter your ID or Email below to receive a temporary password.' : 'Please sign in to continue'}
           </p>
         </div>
 
         <div className="glass-premium p-10 rounded-[48px] shadow-2xl border-white/40">
-          <form onSubmit={handleSubmit} className="space-y-8">
+          <form onSubmit={isForgotPassword ? handleForgotPasswordSubmit : handleSubmit} className="space-y-8">
             
             {!hasAdmin && (
               <div className="space-y-3">
@@ -160,9 +187,18 @@ const Login = () => {
               </div>
             </div>
 
-            {hasAdmin && (
+            {hasAdmin && !isForgotPassword && (
               <div className="space-y-3">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">Password</label>
+                <div className="flex justify-between items-center ml-2">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Password</label>
+                  <button 
+                    type="button" 
+                    onClick={() => setIsForgotPassword(true)}
+                    className="text-[10px] font-black text-brand-600 uppercase tracking-widest hover:text-brand-800 transition-colors focus:outline-none"
+                  >
+                    Forgot Password?
+                  </button>
+                </div>
                 <div className="relative group">
                   <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-brand-600 transition-colors">
                     <Lock size={20} />
@@ -179,23 +215,35 @@ const Login = () => {
               </div>
             )}
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-5 bg-slate-900 text-white rounded-3xl font-black text-xs uppercase tracking-[0.2em] hover:bg-brand-600 transition-all active:scale-95 shadow-2xl shadow-slate-200 flex items-center justify-center gap-3 group"
-            >
-              {loading ? (
-                <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
-              ) : (
-                <>
-                  {!hasAdmin ? 'Create Account' : 'Login'}
-                  <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
-                </>
+            <div className="space-y-4">
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-5 bg-slate-900 text-white rounded-3xl font-black text-xs uppercase tracking-[0.2em] hover:bg-brand-600 transition-all active:scale-95 shadow-2xl shadow-slate-200 flex items-center justify-center gap-3 group"
+              >
+                {loading ? (
+                  <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+                ) : (
+                  <>
+                    {!hasAdmin ? 'Create Account' : isForgotPassword ? 'Send Recovery Protocol' : 'Login'}
+                    <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                  </>
+                )}
+              </button>
+              
+              {isForgotPassword && (
+                <button
+                  type="button"
+                  onClick={() => setIsForgotPassword(false)}
+                  className="w-full py-4 text-slate-500 font-bold text-sm tracking-wide hover:text-slate-800 transition-colors"
+                >
+                  Return to Login
+                </button>
               )}
-            </button>
+            </div>
           </form>
 
-          <div className="mt-10 pt-8 border-t border-slate-100 flex flex-col items-center gap-4">
+          <div className="mt-8 pt-6 border-t border-slate-100 flex flex-col items-center gap-4">
             <div className="flex items-center gap-2 text-emerald-600 bg-emerald-50 px-4 py-2 rounded-full">
               <ShieldCheck size={16} />
               <span className="text-[10px] font-black uppercase tracking-widest">Secure Connection</span>

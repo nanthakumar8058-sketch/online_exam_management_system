@@ -86,6 +86,47 @@ exports.login = async (req, res, next) => {
   }
 };
 
+// @desc    Forgot Password
+// @route   POST /api/v1/auth/forgotpassword
+// @access  Public
+exports.forgotPassword = async (req, res, next) => {
+  try {
+    const identifier = req.body.identifier || req.body.email;
+    
+    if (!identifier) {
+      return res.status(400).json({ success: false, error: 'Please provide an email or account ID' });
+    }
+
+    const user = await User.findOne({
+      $or: [
+        { email: identifier },
+        { employeeId: identifier },
+        { registerNumber: identifier }
+      ]
+    });
+
+    if (!user) {
+      // Do not reveal if the user exists or not for security
+      return res.status(200).json({ success: true, message: 'If an account exists, a recovery email has been sent.' });
+    }
+
+    // Generate random 8-char password
+    const temporaryPassword = crypto.randomBytes(4).toString('hex');
+    user.password = temporaryPassword;
+    await user.save();
+
+    try {
+      await emailService.sendForgotPassword(user.email, user.name, temporaryPassword);
+      res.status(200).json({ success: true, message: 'Recovery email transmitted successfully.' });
+    } catch (err) {
+      console.error('Failed to send recovery email:', err);
+      res.status(500).json({ success: false, error: 'Failed to send recovery email. Please try again later.' });
+    }
+  } catch (err) {
+    res.status(400).json({ success: false, error: err.message });
+  }
+};
+
 // @desc    Check if any Admin exists
 // @route   GET /api/v1/auth/status
 // @access  Public

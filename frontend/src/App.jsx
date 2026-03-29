@@ -7,6 +7,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Landing from './pages/Landing';
 import OrganizationRegister from './pages/OrganizationRegister';
+import ErrorBoundary from './components/ErrorBoundary';
 
 // Admin
 import AdminDashboard from './pages/admin/Dashboard';
@@ -57,7 +58,11 @@ function App() {
           <Route path="/register-organization" element={<OrganizationRegister />} />
 
           {/* Specialized Exam Mode (No Sidebar) */}
-          <Route path="/exam/:id" element={<ExamWindow />} />
+          <Route path="/exam/:id" element={
+            <ErrorBoundary>
+              <ExamWindow />
+            </ErrorBoundary>
+          } />
 
           <Route path="/" element={<Landing />} />
 

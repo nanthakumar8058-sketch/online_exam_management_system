@@ -32,6 +32,17 @@ const ExamWindow = () => {
   const [socket, setSocket] = useState(null);
   const [violations, setViolations] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [warningModal, setWarningModal] = useState({ show: false, message: '' });
+
+  const handleSubmit = useCallback(async () => {
+    try {
+      await api.post('/results/submit', { examId: id, userAnswers: answers });
+      toast.success('Grid Transmission Successful');
+      navigate('/student/results');
+    } catch (err) {
+      toast.error('Transmission Failed. Retry Protocol Handled.');
+    }
+  }, [id, answers, navigate]);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -65,9 +76,9 @@ const ExamWindow = () => {
           duration: 8000
         });
       } else {
-        toast.error(`Security Incident: ${type} (${newCount}/${max})`, {
-          icon: '⚠️',
-          style: { background: '#991b1b', color: '#fff', borderRadius: '12px', fontWeight: 'bold' }
+        setWarningModal({
+            show: true,
+            message: `SECURITY INCIDENT: ${type}. \nIf you try to escape or switch out again, your exam will be forcefully terminated and graded as-is! (${newCount}/${max} strikes used)`
         });
       }
 
@@ -171,7 +182,10 @@ const ExamWindow = () => {
       }
       if (e.key === 'Escape') {
         e.preventDefault();
-        toast.error('Action Restricted: You cannot exit the exam until the duration finishes.', { icon: '⚠️' });
+        setWarningModal({
+            show: true,
+            message: `WARNING: The Escape key is restricted.\nIf you try to escape the environment, your exam will be forcefully exited and submitted!`
+        });
       }
     };
 
@@ -207,16 +221,6 @@ const ExamWindow = () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [handleFullscreenChange, handleVisibilityChange]);
-
-  const handleSubmit = useCallback(async () => {
-    try {
-      await api.post('/results/submit', { examId: id, userAnswers: answers });
-      toast.success('Grid Transmission Successful');
-      navigate('/student/results');
-    } catch (err) {
-      toast.error('Transmission Failed. Retry Protocol Handled.');
-    }
-  }, [id, answers, navigate]);
 
   useEffect(() => {
     if (!exam || timeLeft <= 0) return;
@@ -487,6 +491,32 @@ const ExamWindow = () => {
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Strict Warning Modal */}
+      {warningModal.show && (
+        <div className="fixed inset-0 z-[200] bg-rose-950/90 backdrop-blur-md flex items-center justify-center p-8 animate-in fade-in duration-300">
+            <div className="bg-[#050505] border border-rose-500/30 rounded-[32px] p-10 max-w-2xl w-full text-center shadow-2xl shadow-rose-900/50">
+                <div className="w-24 h-24 bg-rose-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <AlertTriangle size={48} className="text-rose-500 animate-pulse" />
+                </div>
+                <h2 className="text-3xl font-black uppercase tracking-tighter text-white mb-4">Security Protocol Warning</h2>
+                <div className="bg-rose-900/20 p-6 rounded-2xl border border-rose-500/20 mb-8">
+                    <p className="text-rose-400 font-bold uppercase tracking-widest leading-relaxed text-sm whitespace-pre-line">
+                        {warningModal.message}
+                    </p>
+                </div>
+                <button
+                    onClick={() => {
+                        setWarningModal({ show: false, message: '' });
+                        requestFullscreen();
+                    }}
+                    className="w-full py-5 bg-rose-600 hover:bg-rose-700 text-white rounded-[20px] font-black text-xs uppercase tracking-[0.2em] transition-all active:scale-95"
+                >
+                    I Understand, Return to Exam
+                </button>
+            </div>
         </div>
       )}
     </div>

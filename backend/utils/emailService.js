@@ -105,3 +105,26 @@ exports.sendPasswordChangeSuccess = async (email, name) => {
     html,
   });
 };
+
+exports.sendForgotPassword = async (email, name, newPassword) => {
+  const message = `Dear ${name || 'User'},\n\nWe received a request to reset your password.\nYour new temporary password is: ${newPassword}\n\nPlease login and change your password immediately for security purposes.`;
+  const html = `
+    <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
+      <h2 style="color: #0f172a;">Password Recovery</h2>
+      <p>Dear ${name || 'User'},</p>
+      <p>We received a request to recover your account access. A secure temporary password has been generated for you.</p>
+      <div style="background: #f8fafc; padding: 20px; border-radius: 12px; margin: 25px 0; border: 1px solid #e2e8f0; text-align: center;">
+        <p style="text-transform: uppercase; font-size: 10px; font-weight: bold; color: #64748b; margin-top: 0; letter-spacing: 2px;">Temporary Password</p>
+        <h1 style="letter-spacing: 3px; color: #2563eb; margin: 0; font-family: monospace;">${newPassword}</h1>
+      </div>
+      <p style="color: #64748b; font-size: 13px;"><strong>Critical Security Notice:</strong> Please sign in with this temporary password and immediately navigate to your Settings to establish a new permanent password.</p>
+    </div>
+  `;
+
+  await sendEmail({
+    email,
+    subject: 'ExamCore Account Recovery',
+    message,
+    html,
+  });
+};

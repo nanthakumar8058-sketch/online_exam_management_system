@@ -44,11 +44,11 @@ const Landing = () => {
 
       {/* Hero Section */}
       <section className="flex-1 flex flex-col items-center justify-center text-center px-6 py-20">
-        <h1 className="text-5xl md:text-6xl font-black text-slate-900 mb-6 drop-shadow-sm">
-          Easy Online Exams
+        <h1 className="text-5xl md:text-6xl font-black text-slate-900 mb-6 drop-shadow-sm tracking-tighter">
+          Enterprise Assessment Platform
         </h1>
-        <p className="max-w-xl text-lg text-slate-600 font-medium mb-16">
-          A simple platform to create, manage, and take secure exams. Choose your profile below to sign in.
+        <p className="max-w-2xl text-lg text-slate-500 font-medium mb-16 leading-relaxed">
+          The unified architecture for creating, managing, and enforcing secure digital examinations. Select your access protocol below.
         </p>
 
         {/* Login Portals Grid */}

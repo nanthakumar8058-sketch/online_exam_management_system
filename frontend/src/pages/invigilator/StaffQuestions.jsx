@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../api/axios';
-import { Plus, BookOpen, Clock, Calendar, Cpu, Layers, Check, X, Zap, ChevronRight, ShieldAlert, Edit, Trash2 } from 'lucide-react';
+import { Plus, BookOpen, Clock, Calendar, Cpu, Layers, Check, X, Zap, ChevronRight, ShieldAlert, Edit, Trash2, XCircle } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 const StaffQuestions = () => {
@@ -265,95 +265,88 @@ const StaffQuestions = () => {
             </div>
 
             {showModal && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-500">
-                    <div className="bg-white rounded-[32px] w-full max-w-4xl p-8 sm:p-10 shadow-2xl animate-in zoom-in-95 duration-500 my-8 max-h-[90vh] overflow-y-auto custom-scrollbar relative border border-white/20">
-                        <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600"></div>
-                        
-                        <div className="flex justify-between items-start mb-10">
-                            <div>
-                                <h4 className="text-[10px] font-black text-blue-600 uppercase tracking-[0.3em] mb-2">{editingQuestionId ? 'Update Entry' : 'New Entry'}</h4>
-                                <h2 className="text-4xl sm:text-5xl font-black text-slate-900 tracking-tight italic leading-none">{editingQuestionId ? 'Edit Question' : 'Add Question'}</h2>
-                                <p className="text-slate-500 text-sm mt-3 font-medium flex items-center gap-2">
-                                    <Layers size={14} className="text-blue-500" />
-                                    Exam: <span className="font-bold text-slate-700">{selectedExam?.name}</span>
-                                </p>
-                            </div>
-                            <button
-                                onClick={() => setShowModal(false)}
-                                className="w-12 h-12 bg-slate-50 flex items-center justify-center rounded-2xl text-slate-400 hover:bg-slate-900 hover:text-white transition-all shadow-sm"
-                            >
-                                <X size={24} strokeWidth={2.5} />
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setShowModal(false)} />
+                    <div className="bg-white rounded-[32px] p-8 w-full max-w-2xl relative z-10 shadow-2xl max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-300">
+                        <div className="flex justify-between items-center mb-6">
+                            <h2 className="text-2xl font-black text-slate-900 uppercase italic">
+                                {editingQuestionId ? 'Edit Question' : 'Add Question'}
+                            </h2>
+                            <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-slate-900">
+                                <XCircle size={24} />
                             </button>
                         </div>
-
-                        <form onSubmit={handleAddOrEditQuestion} className="space-y-10">
-                            <div className="space-y-4">
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">Question Text</label>
+                        
+                        <form onSubmit={handleAddOrEditQuestion} className="space-y-6">
+                            <div className="space-y-2">
+                                <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-2">Question Text</label>
                                 <textarea
                                     required
-                                    rows="4"
-                                    className="w-full bg-slate-50 border-2 border-transparent rounded-3xl py-5 px-6 focus:bg-white focus:border-blue-500 outline-none transition-all font-bold text-2xl sm:text-3xl text-slate-900 leading-tight tracking-tight placeholder:text-slate-300 shadow-inner"
-                                    placeholder="Enter the question here..."
+                                    rows={3}
+                                    className="w-full bg-slate-50 border-2 border-transparent rounded-[20px] p-4 text-sm font-bold text-slate-900 focus:bg-white focus:border-brand-600 outline-none transition-all placeholder:text-slate-300 resize-none"
+                                    placeholder="Enter your question here..."
                                     value={newQuestion.questionText}
                                     onChange={e => setNewQuestion({ ...newQuestion, questionText: e.target.value })}
-                                ></textarea>
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-2">Marks</label>
+                                <input
+                                    type="number"
+                                    required
+                                    min="1"
+                                    className="w-full max-w-[150px] bg-slate-50 border-2 border-transparent rounded-[20px] p-4 text-sm font-bold text-slate-900 focus:bg-white focus:border-brand-600 outline-none transition-all"
+                                    value={newQuestion.marks}
+                                    onChange={e => setNewQuestion({ ...newQuestion, marks: parseInt(e.target.value) || 1 })}
+                                />
                             </div>
 
                             <div className="space-y-4">
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">Marks</label>
-                                <div className="flex items-center gap-4 bg-slate-50 p-2 rounded-2xl border-2 border-transparent focus-within:bg-white focus-within:border-blue-500 transition-all w-max shadow-inner">
-                                    <button type="button" onClick={() => setNewQuestion(p => ({ ...p, marks: Math.max(1, p.marks - 1) }))} className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-slate-400 hover:bg-blue-600 hover:text-white transition-all shadow-sm">-</button>
-                                    <input
-                                        type="number"
-                                        min="1"
-                                        required
-                                        className="w-20 bg-transparent border-none outline-none font-black text-slate-900 text-2xl text-center"
-                                        value={newQuestion.marks}
-                                        onChange={e => setNewQuestion({ ...newQuestion, marks: parseInt(e.target.value) || 1 })}
-                                    />
-                                    <button type="button" onClick={() => setNewQuestion(p => ({ ...p, marks: p.marks + 1 }))} className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-slate-400 hover:bg-blue-600 hover:text-white transition-all shadow-sm">+</button>
+                                <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-2">Options</label>
+                                <div className="bg-amber-50 text-amber-800 text-xs font-bold p-3 rounded-xl border border-amber-200">
+                                    Provide up to 4 options. Select the radio button for the correct answer. Empty options will be ignored.
                                 </div>
+                                {newQuestion.options.map((opt, idx) => (
+                                    <div key={idx} className={`flex items-center gap-3 p-2 rounded-2xl border-2 transition-all ${opt.isCorrect ? 'border-brand-500 bg-brand-50' : 'border-transparent bg-slate-50 hover:bg-slate-100'}`}>
+                                        <input
+                                            type="radio"
+                                            name="correctOption"
+                                            checked={opt.isCorrect}
+                                            onChange={() => {
+                                                const opts = newQuestion.options.map((o, i) => ({ ...o, isCorrect: i === idx }));
+                                                setNewQuestion({ ...newQuestion, options: opts });
+                                            }}
+                                            className="w-5 h-5 ml-4 accent-brand-600 cursor-pointer"
+                                        />
+                                        <input
+                                            type="text"
+                                            className="flex-1 bg-transparent p-3 text-sm font-bold text-slate-900 outline-none placeholder:text-slate-400 placeholder:font-medium"
+                                            placeholder={`Option ${idx + 1}`}
+                                            value={opt.text}
+                                            onChange={e => {
+                                                const opts = [...newQuestion.options];
+                                                opts[idx].text = e.target.value;
+                                                setNewQuestion({ ...newQuestion, options: opts });
+                                            }}
+                                        />
+                                    </div>
+                                ))}
                             </div>
 
-                            <div className="space-y-6">
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">Options (Select Correct Answer)</label>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                                    {newQuestion.options.map((opt, i) => (
-                                        <div key={i} className={`flex gap-5 items-center p-4 rounded-2xl border-2 transition-all relative overflow-hidden group/opt ${opt.isCorrect ? 'border-green-500 bg-green-50 shadow-xl shadow-green-900/10' : 'border-slate-100 bg-slate-50 hover:border-slate-200 focus-within:border-blue-500 focus-within:bg-white'}`}>
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    const opts = newQuestion.options.map((o, idx) => ({ ...o, isCorrect: i === idx }));
-                                                    setNewQuestion({ ...newQuestion, options: opts });
-                                                }}
-                                                className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all shrink-0 ${opt.isCorrect ? 'bg-green-500 text-white shadow-lg rotate-6 scale-110' : 'bg-white text-slate-300 hover:text-blue-600 hover:bg-blue-50'}`}
-                                            >
-                                                {opt.isCorrect ? <Check size={24} strokeWidth={3} /> : <span className="font-black text-lg">{String.fromCharCode(65 + i)}</span>}
-                                            </button>
-                                            <input
-                                                type="text"
-                                                required
-                                                placeholder={`Option ${String.fromCharCode(65 + i)}...`}
-                                                className="flex-1 bg-transparent border-none focus:ring-0 font-bold text-xl text-slate-800 placeholder:text-slate-300 outline-none"
-                                                value={opt.text}
-                                                onChange={e => {
-                                                    const opts = [...newQuestion.options];
-                                                    opts[i].text = e.target.value;
-                                                    setNewQuestion({ ...newQuestion, options: opts });
-                                                }}
-                                            />
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-
-                            <div className="pt-6 flex flex-col sm:flex-row justify-end gap-4 border-t border-slate-100">
-                                <button type="button" onClick={() => setShowModal(false)} className="px-8 py-4 text-slate-500 font-bold hover:bg-slate-100 rounded-2xl transition-all">
+                            <div className="pt-4 flex gap-4">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowModal(false)}
+                                    className="flex-1 py-4 bg-slate-100 text-slate-600 rounded-[20px] font-black text-xs uppercase tracking-widest hover:bg-slate-200 transition-all border border-slate-200"
+                                >
                                     Cancel
                                 </button>
-                                <button type="submit" className="px-10 py-4 bg-slate-900 text-white rounded-2xl font-black tracking-wide hover:bg-blue-600 transition-all shadow-xl shadow-slate-200 flex items-center justify-center gap-3">
-                                    <Zap size={20} className="text-blue-400" />
-                                    {editingQuestionId ? 'SAVE CHANGES' : 'ADD QUESTION'}
+                                <button
+                                    type="submit"
+                                    className="flex-1 py-4 bg-slate-900 text-white rounded-[20px] font-black text-xs uppercase tracking-widest hover:bg-brand-600 transition-all shadow-xl shadow-slate-200"
+                                >
+                                    {editingQuestionId ? 'Save Changes' : 'Add Question'}
                                 </button>
                             </div>
                         </form>
