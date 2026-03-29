@@ -112,10 +112,10 @@ const Login = () => {
             </span>
           </div>
           <h1 className="text-4xl font-black text-slate-900 tracking-tight mb-2">
-            {!hasAdmin ? 'System Setup' : 'Initialize Session'}
+            {!hasAdmin ? 'Initial Setup' : 'Sign In'}
           </h1>
           <p className="text-slate-500 font-medium">
-            {!hasAdmin ? 'Create the master administrator account' : 'Verify your credentials to enter the grid'}
+            {!hasAdmin ? 'Create the first owner account for this system' : 'Please sign in to continue'}
           </p>
         </div>
 
@@ -162,7 +162,7 @@ const Login = () => {
 
             {hasAdmin && (
               <div className="space-y-3">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">Security Key</label>
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">Password</label>
                 <div className="relative group">
                   <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-brand-600 transition-colors">
                     <Lock size={20} />
@@ -188,7 +188,7 @@ const Login = () => {
                 <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
               ) : (
                 <>
-                  {!hasAdmin ? 'Initialize System' : 'Verify & Enter'}
+                  {!hasAdmin ? 'Create Account' : 'Login'}
                   <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
                 </>
               )}
@@ -198,13 +198,13 @@ const Login = () => {
           <div className="mt-10 pt-8 border-t border-slate-100 flex flex-col items-center gap-4">
             <div className="flex items-center gap-2 text-emerald-600 bg-emerald-50 px-4 py-2 rounded-full">
               <ShieldCheck size={16} />
-              <span className="text-[10px] font-black uppercase tracking-widest">End-to-End Encrypted</span>
+              <span className="text-[10px] font-black uppercase tracking-widest">Secure Connection</span>
             </div>
           </div>
         </div>
 
         <p className="text-center mt-12 text-[10px] font-black text-slate-300 uppercase tracking-[0.3em]">
-          Powered by ExamCore Intelligence System
+          Powered by ExamCore
         </p>
       </div>
     </div>

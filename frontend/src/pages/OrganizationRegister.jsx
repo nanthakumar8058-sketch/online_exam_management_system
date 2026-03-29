@@ -79,8 +79,8 @@ const OrganizationRegister = () => {
                         <div className="inline-flex items-center gap-2 px-5 py-2 bg-brand-600/10 text-brand-600 rounded-full font-black text-[10px] uppercase tracking-[0.3em] mb-6 border border-brand-600/20">
                             <Building2 size={14} /> Organization Enrollment
                         </div>
-                        <h1 className="text-6xl font-black text-slate-900 tracking-tighter italic uppercase mb-4">Join the Grid</h1>
-                        <p className="text-slate-500 text-lg font-medium max-w-xl mx-auto">Enroll your institution and gain access to a professional, AI-powered examination infrastructure.</p>
+                        <h1 className="text-6xl font-black text-slate-900 tracking-tighter italic uppercase mb-4">Register Organization</h1>
+                        <p className="text-slate-500 text-lg font-medium max-w-xl mx-auto">Sign up your school or company to start managing online exams effortlessly.</p>
                     </div>
 
                     {/* Step Indicator */}

@@ -82,12 +82,12 @@ const Register = () => {
             </span>
           </div>
           <h1 className="text-4xl font-black text-slate-900 tracking-tight mb-2">
-            {hasAdmin ? 'Identity Restricted' : 'Initialize Root Admin'}
+            {hasAdmin ? 'Registration Closed' : 'Setup Admin Account'}
           </h1>
           <p className="text-slate-500 font-medium">
             {hasAdmin
-              ? 'Self-registration is disabled. Contact your administrator for access.'
-              : 'Create the primary system administrator account to begin setup.'}
+              ? 'Public registration is disabled. Ask your administrator for access.'
+              : 'Create the first owner account for this system.'}
           </p>
         </div>
 
@@ -129,7 +129,7 @@ const Register = () => {
               </div>
 
               <div className="space-y-3">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">Secure Keyphrase</label>
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">Password</label>
                 <div className="relative group">
                   <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-brand-600 transition-colors">
                     <Lock size={20} />
@@ -154,7 +154,7 @@ const Register = () => {
                   <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
                 ) : (
                   <>
-                    Initialize Admin Profile
+                    Create Admin
                     <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
                   </>
                 )}
@@ -166,16 +166,16 @@ const Register = () => {
                 <ShieldAlert size={32} />
               </div>
               <div>
-                <h3 className="text-xl font-black text-slate-900 uppercase italic tracking-tighter mb-4">Onboarding Suspended</h3>
+                <h3 className="text-xl font-black text-slate-900 uppercase italic tracking-tighter mb-4">Registration is Invite-Only</h3>
                 <p className="text-sm text-slate-500 font-medium leading-relaxed">
-                  User registration is now restricted to internal administrator invitations only.
+                  You can only register if an administrator creates an account for you.
                 </p>
               </div>
               <button
                 onClick={() => navigate('/login')}
                 className="w-full py-4 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-brand-600 transition-all active:scale-95 shadow-2xl"
               >
-                Sign In to Platform
+                Sign In
               </button>
             </div>
           )}
@@ -184,14 +184,14 @@ const Register = () => {
             <p className="text-center text-sm font-bold text-slate-400">
               Already have an account?{' '}
               <Link to="/login" className="text-brand-600 hover:underline">
-                Sign In to Grid
+                Sign In
               </Link>
             </p>
           </div>
         </div>
 
         <p className="text-center mt-12 text-[10px] font-black text-slate-300 uppercase tracking-[0.3em]">
-          Secured by ExamCore Protocol v2.6
+          Powered by ExamCore
         </p>
       </div>
     </div>
