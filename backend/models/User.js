@@ -46,6 +46,18 @@ const UserSchema = new mongoose.Schema({
     type: mongoose.Schema.ObjectId,
     ref: 'Department'
   },
+  phone: {
+    type: String
+  },
+  dateOfBirth: {
+    type: Date
+  },
+  yearOfStudy: {
+    type: String
+  },
+  yearOfExperience: {
+    type: Number
+  },
   isVerified: {
     type: Boolean,
     default: false

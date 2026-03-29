@@ -19,6 +19,11 @@ const ExamSchema = new mongoose.Schema({
     type: mongoose.Schema.ObjectId,
     ref: 'Organization'
   },
+  department: {
+    type: mongoose.Schema.ObjectId,
+    ref: 'Department',
+    default: null
+  },
   status: {
     type: String,
     enum: ['upcoming', 'ongoing', 'completed'],

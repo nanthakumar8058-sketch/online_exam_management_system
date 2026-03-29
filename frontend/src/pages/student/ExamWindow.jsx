@@ -52,10 +52,10 @@ const ExamWindow = () => {
   };
 
   const handleViolation = useCallback((type, options = {}) => {
-    if (!exam || !exam.settings.preventTabSwitch) return;
+    if (!exam || !exam?.settings?.preventTabSwitch) return;
 
     setViolations(prev => {
-      const max = exam.settings.maxViolations || 3;
+      const max = exam?.settings?.maxViolations || 3;
       const newCount = options.immediateKick ? max : prev + 1;
 
       if (options.immediateKick) {
@@ -116,7 +116,13 @@ const ExamWindow = () => {
     const loadExam = async () => {
       try {
         const res = await api.get(`/exams/${id}`);
-        const examData = res.data.data;
+        let examData = res.data.data;
+        
+        // Safety guard: filter out any null questions due to DB population mismatches
+        if (examData.questions) {
+            examData.questions = examData.questions.filter(q => q !== null);
+        }
+
         const startDate = new Date(examData.scheduledDate);
         const endDate = new Date(startDate.getTime() + examData.duration * 60000);
         const now = new Date();

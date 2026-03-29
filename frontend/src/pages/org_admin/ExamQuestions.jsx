@@ -34,7 +34,12 @@ const ExamQuestions = () => {
     const fetchExamDetails = async () => {
         try {
             const res = await api.get(`/exams/${id}`);
-            const examData = res.data.data;
+            let examData = res.data.data;
+            
+            if (examData.questions) {
+                examData.questions = examData.questions.filter(q => q !== null);
+            }
+
             const startDate = new Date(examData.scheduledDate);
             const endDate = new Date(startDate.getTime() + examData.duration * 60000);
 

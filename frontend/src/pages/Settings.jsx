@@ -1,15 +1,30 @@
 import React, { useState } from 'react';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
-import { User, Lock, Save, ShieldCheck, Mail, Fingerprint, RefreshCcw } from 'lucide-react';
+import { User, Lock, Save, ShieldCheck, Fingerprint, RefreshCcw, Mail, Phone, Calendar, BookOpen, Briefcase, Hash } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 const Settings = () => {
     const { user, updateUser } = useAuth();
     const [loading, setLoading] = useState(false);
+    
+    // Safely parse DOB
+    let initialDob = '';
+    if (user?.dateOfBirth) {
+        try {
+            initialDob = new Date(user.dateOfBirth).toISOString().split('T')[0];
+        } catch(e) {
+            initialDob = '';
+        }
+    }
+
     const [profileData, setProfileData] = useState({
         name: user?.name || '',
         email: user?.email || '',
+        phone: user?.phone || '',
+        dateOfBirth: initialDob,
+        yearOfStudy: user?.yearOfStudy || '',
+        yearOfExperience: user?.yearOfExperience || ''
     });
 
     const [passwordData, setPasswordData] = useState({
@@ -24,7 +39,7 @@ const Settings = () => {
         try {
             const res = await api.put('/auth/updatedetails', profileData);
             updateUser(res.data.data);
-            toast.success('Profile Matrix Updated', {
+            toast.success('Professional Identity Updated', {
                 style: { borderRadius: '16px', background: '#0f172a', color: '#fff' }
             });
         } catch (err) {
@@ -47,129 +62,226 @@ const Settings = () => {
             };
 
             await api.put('/auth/updatepassword', payload);
-            toast.success('Identity Secured - Password Changed');
+            toast.success('Access Key Secured');
             setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
         } catch (err) {
-            toast.error(err.response?.data?.error || 'Password Security Breach - Failed');
+            toast.error(err.response?.data?.error || 'Security Breach - Failed');
         } finally {
             setLoading(false);
         }
     };
 
+    const isStudent = user?.role === 'student';
+    const isStaff = user?.role === 'staff';
+
     return (
-        <div className="max-w-4xl mx-auto space-y-12 animate-in fade-in duration-700">
-            <div className="flex items-center gap-6">
-                <div className="w-20 h-20 rounded-[32px] bg-slate-900 flex items-center justify-center text-white shadow-2xl rotate-3">
-                    <Fingerprint size={40} />
+        <div className="max-w-5xl mx-auto space-y-12 animate-in fade-in duration-700 pb-12">
+            {/* Header */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-slate-900 rounded-[40px] p-10 relative overflow-hidden shadow-2xl">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-brand-600/20 rounded-full blur-3xl -mr-20 -mt-20"></div>
+                <div className="flex items-center gap-6 relative z-10">
+                    <div className="w-24 h-24 rounded-[32px] bg-white/10 flex items-center justify-center text-brand-400 shadow-inner rotate-3 border border-white/10 backdrop-blur-md">
+                        {isStudent ? <BookOpen size={48} /> : isStaff ? <Briefcase size={48} /> : <ShieldCheck size={48} /> }
+                    </div>
+                    <div>
+                        <h1 className="text-4xl font-black text-white tracking-tighter uppercase">{user?.name}</h1>
+                        <p className="text-brand-400 font-black text-xs uppercase tracking-[0.4em] mt-2">
+                            {isStudent ? 'Registered Student' : isStaff ? 'Faculty Member' : 'System Administrator'}
+                        </p>
+                    </div>
                 </div>
-                <div>
-                    <h1 className="text-4xl font-black text-slate-900 tracking-tighter italic uppercase">Identity Hub</h1>
-                    <p className="text-slate-500 font-black text-[10px] uppercase tracking-[0.4em]">Manage your personal access parameters</p>
+                
+                {/* ID Badge Display (Read Only) */}
+                <div className="relative z-10 bg-white/10 border border-white/20 rounded-3xl p-6 backdrop-blur-md min-w-[250px]">
+                    <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-4 border-b border-white/10 pb-2">Digital ID Card</p>
+                    <div className="space-y-3">
+                        {isStudent && (
+                            <div className="flex justify-between items-center text-sm">
+                                <span className="text-slate-400 font-bold flex items-center gap-2"><Hash size={14} /> Register No</span>
+                                <span className="text-white font-black">{user?.registerNumber || 'PENDING'}</span>
+                            </div>
+                        )}
+                        {isStaff && (
+                            <div className="flex justify-between items-center text-sm">
+                                <span className="text-slate-400 font-bold flex items-center gap-2"><Hash size={14} /> Employee ID</span>
+                                <span className="text-white font-black">{user?.employeeId || 'PENDING'}</span>
+                            </div>
+                        )}
+                        <div className="flex justify-between items-center text-sm">
+                            <span className="text-slate-400 font-bold flex items-center gap-2"><Mail size={14} /> Domain</span>
+                            <span className="text-white font-black truncate max-w-[120px]" title={user?.email}>{user?.email?.split('@')[1] || 'Internal'}</span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                {/* Profile Section */}
-                <div className="glass-premium p-10 rounded-[48px] border-white/40 shadow-xl space-y-8 relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-brand-600/5 rounded-full -mr-16 -mt-16 group-hover:scale-110 transition-transform"></div>
-                    <div className="flex items-center gap-4 mb-2">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Professional Profile Form */}
+                <div className="bg-white p-10 rounded-[48px] border border-slate-100 shadow-xl relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-brand-50 rounded-full -mr-16 -mt-16 group-hover:scale-110 transition-transform"></div>
+                    <div className="flex items-center gap-4 mb-8">
                         <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400 border border-slate-100 group-hover:bg-brand-50 group-hover:text-brand-600 transition-colors">
                             <User size={24} />
                         </div>
-                        <h2 className="text-xl font-black italic uppercase tracking-tighter text-slate-900">Personal Data</h2>
+                        <h2 className="text-2xl font-black uppercase tracking-tighter text-slate-900">Bio Data</h2>
                     </div>
 
-                    <form onSubmit={handleUpdateProfile} className="space-y-6">
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Entity Name</label>
-                            <input
-                                type="text"
-                                className="w-full bg-slate-50 border-2 border-transparent rounded-[24px] py-4 px-6 focus:bg-white focus:border-brand-600 outline-none transition-all font-bold text-slate-900"
-                                value={profileData.name}
-                                onChange={e => setProfileData({ ...profileData, name: e.target.value })}
-                            />
+                    <form onSubmit={handleUpdateProfile} className="space-y-5">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Full Legal Name</label>
+                                <div className="relative">
+                                    <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                                    <input
+                                        type="text"
+                                        className="w-full bg-slate-50 border-2 border-transparent rounded-[20px] py-3.5 pl-11 pr-4 focus:bg-white focus:border-brand-600 outline-none transition-all font-bold text-slate-900 text-sm"
+                                        value={profileData.name}
+                                        onChange={e => setProfileData({ ...profileData, name: e.target.value })}
+                                    />
+                                </div>
+                            </div>
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Email Coordinates</label>
+                                <div className="relative">
+                                    <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                                    <input
+                                        type="email"
+                                        className="w-full bg-slate-50 border-2 border-transparent rounded-[20px] py-3.5 pl-11 pr-4 focus:bg-white focus:border-brand-600 outline-none transition-all font-bold text-slate-900 text-sm"
+                                        value={profileData.email}
+                                        onChange={e => setProfileData({ ...profileData, email: e.target.value })}
+                                    />
+                                </div>
+                            </div>
                         </div>
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Communication Node (Email)</label>
-                            <input
-                                type="email"
-                                className="w-full bg-slate-50 border-2 border-transparent rounded-[24px] py-4 px-6 focus:bg-white focus:border-brand-600 outline-none transition-all font-bold text-slate-900"
-                                value={profileData.email}
-                                onChange={e => setProfileData({ ...profileData, email: e.target.value })}
-                            />
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Direct Phone Line</label>
+                                <div className="relative">
+                                    <Phone size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                                    <input
+                                        type="tel"
+                                        placeholder="+1 (555) 000-0000"
+                                        className="w-full bg-slate-50 border-2 border-transparent rounded-[20px] py-3.5 pl-11 pr-4 focus:bg-white focus:border-brand-600 outline-none transition-all font-bold text-slate-900 text-sm"
+                                        value={profileData.phone}
+                                        onChange={e => setProfileData({ ...profileData, phone: e.target.value })}
+                                    />
+                                </div>
+                            </div>
+                            
+                            {isStudent && (
+                                <>
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Date of Birth</label>
+                                        <div className="relative">
+                                            <Calendar size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                                            <input
+                                                type="date"
+                                                className="w-full bg-slate-50 border-2 border-transparent rounded-[20px] py-3.5 pl-11 pr-4 focus:bg-white focus:border-brand-600 outline-none transition-all font-bold text-slate-600 text-sm"
+                                                value={profileData.dateOfBirth}
+                                                onChange={e => setProfileData({ ...profileData, dateOfBirth: e.target.value })}
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="space-y-1 sm:col-span-2">
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Current Year of Study</label>
+                                        <div className="relative">
+                                            <BookOpen size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                                            <select
+                                                className="w-full bg-slate-50 border-2 border-transparent rounded-[20px] py-3.5 pl-11 pr-4 focus:bg-white focus:border-brand-600 outline-none transition-all font-bold text-slate-900 text-sm appearance-none"
+                                                value={profileData.yearOfStudy}
+                                                onChange={e => setProfileData({ ...profileData, yearOfStudy: e.target.value })}
+                                            >
+                                                <option value="">Select Year...</option>
+                                                <option value="First Year">First Year (Freshman)</option>
+                                                <option value="Second Year">Second Year (Sophomore)</option>
+                                                <option value="Third Year">Third Year (Junior)</option>
+                                                <option value="Fourth Year">Fourth Year (Senior)</option>
+                                                <option value="Postgraduate">Postgraduate / Masters</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </>
+                            )}
+
+                            {isStaff && (
+                                <div className="space-y-1 sm:col-span-2">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Years of Experience</label>
+                                    <div className="relative">
+                                        <Briefcase size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            max="50"
+                                            placeholder="e.g. 5"
+                                            className="w-full bg-slate-50 border-2 border-transparent rounded-[20px] py-3.5 pl-11 pr-4 focus:bg-white focus:border-brand-600 outline-none transition-all font-bold text-slate-900 text-sm"
+                                            value={profileData.yearOfExperience}
+                                            onChange={e => setProfileData({ ...profileData, yearOfExperience: e.target.value })}
+                                        />
+                                    </div>
+                                </div>
+                            )}
                         </div>
+
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full py-4 bg-slate-900 text-white rounded-[24px] font-black text-xs uppercase tracking-widest hover:bg-brand-600 transition-all flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50"
+                            className="w-full py-4 mt-4 bg-slate-900 text-white rounded-[20px] font-black text-xs uppercase tracking-widest hover:bg-brand-600 transition-all flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50 shadow-xl"
                         >
-                            <Save size={18} /> Sync Changes
+                            <Save size={18} /> Update Professional Record
                         </button>
                     </form>
                 </div>
 
                 {/* Password Section */}
-                <div className="glass-premium p-10 rounded-[48px] border-white/40 shadow-xl space-y-8 relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-rose-600/5 rounded-full -mr-16 -mt-16 group-hover:scale-110 transition-transform"></div>
-                    <div className="flex items-center gap-4 mb-2">
-                        <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400 border border-slate-100 group-hover:bg-rose-50 group-hover:text-rose-600 transition-colors">
+                <div className="bg-white p-10 rounded-[48px] border border-slate-100 shadow-xl space-y-8 relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-slate-50 rounded-full -mr-16 -mt-16 group-hover:scale-110 transition-transform"></div>
+                    <div className="flex items-center gap-4 mb-2 relative z-10">
+                        <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400 border border-slate-100 group-hover:bg-slate-900 group-hover:text-white transition-colors shadow-sm">
                             <Lock size={24} />
                         </div>
-                        <h2 className="text-xl font-black italic uppercase tracking-tighter text-slate-900">Access Key</h2>
+                        <h2 className="text-2xl font-black uppercase tracking-tighter text-slate-900">Security</h2>
                     </div>
 
-                        <form onSubmit={handleChangePassword} className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Valid Protocol (Current)</label>
-                                <input
-                                    type="password"
-                                    className="w-full bg-slate-50 border-2 border-transparent rounded-[24px] py-4 px-6 focus:bg-white focus:border-rose-500 outline-none transition-all font-bold text-slate-900"
-                                    value={passwordData.currentPassword}
-                                    onChange={e => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
-                                    required
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">New Protocol Identifier</label>
-                                <input
-                                    type="password"
-                                    className="w-full bg-slate-50 border-2 border-transparent rounded-[24px] py-4 px-6 focus:bg-white focus:border-rose-500 outline-none transition-all font-bold text-slate-900"
-                                    value={passwordData.newPassword}
-                                    onChange={e => setPasswordData({ ...passwordData, newPassword: e.target.value })}
-                                    required
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Confirm Protocol</label>
-                                <input
-                                    type="password"
-                                    className="w-full bg-slate-50 border-2 border-transparent rounded-[24px] py-4 px-6 focus:bg-white focus:border-rose-500 outline-none transition-all font-bold text-slate-900"
-                                    value={passwordData.confirmPassword}
-                                    onChange={e => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
-                                    required
-                                />
-                            </div>
-                            <button
-                                type="submit"
-                                disabled={loading}
-                                className="w-full py-4 bg-slate-900 text-white rounded-[24px] font-black text-xs uppercase tracking-widest hover:bg-rose-600 transition-all flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50"
-                            >
-                                <RefreshCcw size={18} /> Update Key
-                            </button>
-                        </form>
-                </div>
-            </div>
-
-            <div className="p-8 bg-slate-900 rounded-[40px] flex items-center justify-between group overflow-hidden relative">
-                <div className="absolute inset-0 bg-gradient-to-r from-brand-600/20 via-transparent to-brand-600/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <div className="flex items-center gap-6 relative z-10">
-                    <div className="w-16 h-16 bg-white/10 rounded-3xl flex items-center justify-center text-brand-400 shadow-inner">
-                        <ShieldCheck size={32} />
-                    </div>
-                    <div>
-                        <h4 className="font-black text-white text-lg tracking-tighter uppercase mb-1">Grid Security Protocol Active</h4>
-                        <p className="text-slate-500 font-bold uppercase tracking-[0.2em] text-[10px]">Encryption status: AES-256 Verified</p>
-                    </div>
+                    <form onSubmit={handleChangePassword} className="space-y-5 relative z-10">
+                        <div className="space-y-1">
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Current Protocol Key</label>
+                            <input
+                                type="password"
+                                className="w-full bg-slate-50 border-2 border-transparent rounded-[20px] py-3.5 px-5 focus:bg-white focus:border-slate-400 outline-none transition-all font-bold text-slate-900 text-sm"
+                                value={passwordData.currentPassword}
+                                onChange={e => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
+                                required
+                            />
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">New Protocol Key</label>
+                            <input
+                                type="password"
+                                className="w-full bg-slate-50 border-2 border-transparent rounded-[20px] py-3.5 px-5 focus:bg-white focus:border-brand-600 outline-none transition-all font-bold text-slate-900 text-sm"
+                                value={passwordData.newPassword}
+                                onChange={e => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+                                required
+                            />
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Verify Protocol Key</label>
+                            <input
+                                type="password"
+                                className="w-full bg-slate-50 border-2 border-transparent rounded-[20px] py-3.5 px-5 focus:bg-white focus:border-brand-600 outline-none transition-all font-bold text-slate-900 text-sm"
+                                value={passwordData.confirmPassword}
+                                onChange={e => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+                                required
+                            />
+                        </div>
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="w-full py-4 mt-4 text-slate-700 bg-slate-100 rounded-[20px] font-black text-xs uppercase tracking-widest hover:bg-slate-900 hover:text-white transition-all flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50"
+                        >
+                            <RefreshCcw size={18} /> Cycle Credentials
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>

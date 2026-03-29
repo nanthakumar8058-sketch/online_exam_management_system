@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../api/axios';
-import { Calendar, Plus, Clock, Users, BookOpen, AlertCircle, Trash2, ArrowRight, Edit } from 'lucide-react';
+import { Calendar, Plus, Clock, Users, BookOpen, AlertCircle, Trash2, ArrowRight, Edit, Building2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 const OrgAdminSchedules = () => {
     const [exams, setExams] = useState([]);
+    const [departments, setDepartments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
@@ -15,19 +16,24 @@ const OrgAdminSchedules = () => {
         duration: '',
         scheduledDate: '',
         postponedDescription: '',
+        department: '',
         _id: null
     });
 
     useEffect(() => {
-        fetchExams();
+        fetchData();
     }, []);
 
-    const fetchExams = async () => {
+    const fetchData = async () => {
         try {
-            const res = await api.get('/exams');
-            setExams(res.data.data);
+            const [examRes, deptRes] = await Promise.all([
+                api.get('/exams'),
+                api.get('/departments')
+            ]);
+            setExams(examRes.data.data);
+            setDepartments(deptRes.data.data);
         } catch (err) {
-            toast.error('Failed to load exam schedules');
+            toast.error('Failed to load exam schedules or departments');
         } finally {
             setLoading(false);
         }
@@ -36,23 +42,23 @@ const OrgAdminSchedules = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
+            const payload = {
+                ...form,
+                duration: parseInt(form.duration),
+                department: form.department || null
+            };
+
             if (isEditing) {
-                const res = await api.put(`/exams/${form._id}`, {
-                    ...form,
-                    duration: parseInt(form.duration)
-                });
+                const res = await api.put(`/exams/${form._id}`, payload);
                 setExams(exams.map(ex => ex._id === form._id ? res.data.data : ex));
                 toast.success('Exam Schedule Updated');
             } else {
-                const res = await api.post('/exams', {
-                    ...form,
-                    duration: parseInt(form.duration)
-                });
+                const res = await api.post('/exams', payload);
                 setExams([...exams, res.data.data]);
                 toast.success('Exam Schedule Created');
             }
             setShowModal(false);
-            setForm({ name: '', subject: '', duration: '', scheduledDate: '', postponedDescription: '', _id: null });
+            setForm({ name: '', subject: '', duration: '', scheduledDate: '', postponedDescription: '', department: '', _id: null });
             setIsEditing(false);
         } catch (err) {
             toast.error(err.response?.data?.error || 'Failed to save schedule');
@@ -67,6 +73,7 @@ const OrgAdminSchedules = () => {
             duration: exam.duration,
             scheduledDate: exam.scheduledDate ? new Date(exam.scheduledDate).toISOString().slice(0, 16) : '',
             postponedDescription: exam.postponedDescription || '',
+            department: exam.department || '',
             _id: exam._id
         });
         setShowModal(true);
@@ -74,7 +81,7 @@ const OrgAdminSchedules = () => {
 
     const handleAddNewClick = () => {
         setIsEditing(false);
-        setForm({ name: '', subject: '', duration: '', scheduledDate: '', postponedDescription: '', _id: null });
+        setForm({ name: '', subject: '', duration: '', scheduledDate: '', postponedDescription: '', department: '', _id: null });
         setShowModal(true);
     };
 
@@ -90,7 +97,7 @@ const OrgAdminSchedules = () => {
     };
 
     return (
-        <div className="space-y-10 animate-in fade-in duration-700">
+        <div className="space-y-10 animate-in fade-in duration-700 pb-12">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
                     <h1 className="text-4xl font-black text-slate-900 tracking-tighter italic uppercase">Exam Schedules</h1>
@@ -131,7 +138,8 @@ const OrgAdminSchedules = () => {
                             <thead className="bg-slate-50/50 border-b border-slate-100">
                                 <tr>
                                     <th className="p-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Exam Title / Subject</th>
-                                    <th className="p-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Date & Time</th>
+                                    <th className="p-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap">Target Dept</th>
+                                    <th className="p-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap">Date & Time</th>
                                     <th className="p-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Duration</th>
                                     <th className="p-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Status</th>
                                     <th className="p-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-right">Actions</th>
@@ -141,23 +149,32 @@ const OrgAdminSchedules = () => {
                                 {exams.map(exam => {
                                     const date = new Date(exam.scheduledDate);
                                     const isPast = date < new Date();
+                                    
+                                    // Map department ID to name
+                                    const targetDept = departments.find(d => d._id === exam.department);
+
                                     return (
                                         <tr key={exam._id} className="hover:bg-slate-50/30 transition-colors group">
-                                            <td className="p-6">
-                                                <div className="font-bold text-slate-900 text-sm">{exam.name}</div>
-                                                <div className="text-xs text-slate-500 uppercase tracking-widest mt-1">{exam.subject}</div>
+                                            <td className="p-6 min-w-[200px]">
+                                                <div className="font-bold text-slate-900 text-sm whitespace-nowrap">{exam.name}</div>
+                                                <div className="text-xs text-slate-500 uppercase tracking-widest mt-1 whitespace-nowrap">{exam.subject}</div>
                                             </td>
                                             <td className="p-6">
-                                                <div className="font-medium text-slate-900 text-sm">{date.toLocaleDateString()}</div>
-                                                <div className="text-xs text-slate-500 font-bold">{date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                                                <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest whitespace-nowrap ${targetDept ? 'bg-indigo-50 text-indigo-600 border border-indigo-100' : 'bg-slate-100 text-slate-500 border border-slate-200'}`}>
+                                                    <Building2 size={12} /> {targetDept ? targetDept.name : 'All Departments'}
+                                                </span>
+                                            </td>
+                                            <td className="p-6">
+                                                <div className="font-medium text-slate-900 text-sm whitespace-nowrap">{date.toLocaleDateString()}</div>
+                                                <div className="text-xs text-slate-500 font-bold whitespace-nowrap">{date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
                                                 {exam.postponedDescription && (
-                                                    <div className="mt-2 text-[10px] font-black text-rose-500 uppercase flex items-center gap-1">
+                                                    <div className="mt-2 text-[10px] font-black text-rose-500 uppercase flex items-center gap-1 whitespace-nowrap">
                                                         <AlertCircle size={10} /> {exam.postponedDescription}
                                                     </div>
                                                 )}
                                             </td>
                                             <td className="p-6">
-                                                <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-slate-50 text-slate-600 rounded-lg text-xs font-bold border border-slate-100">
+                                                <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-slate-50 text-slate-600 rounded-lg text-xs font-bold border border-slate-100 whitespace-nowrap">
                                                     <Clock size={14} /> {exam.duration} Min
                                                 </div>
                                             </td>
@@ -179,7 +196,7 @@ const OrgAdminSchedules = () => {
                                                     className="px-4 py-2 inline-flex items-center justify-center rounded-xl bg-slate-900 text-white font-bold text-[10px] uppercase tracking-widest hover:bg-brand-600 transition-colors"
                                                     title="Manage Questions"
                                                 >
-                                                    Manage Questions
+                                                    Questions
                                                 </button>
                                                 <button
                                                     onClick={() => handleDelete(exam._id)}
@@ -201,7 +218,7 @@ const OrgAdminSchedules = () => {
             {showModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
                     <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setShowModal(false)} />
-                    <div className="bg-white rounded-[40px] p-10 w-full max-w-lg relative z-10 shadow-2xl animate-in zoom-in-95 duration-300">
+                    <div className="bg-white rounded-[40px] p-6 md:p-10 w-full max-w-lg relative z-10 shadow-2xl animate-in zoom-in-95 duration-300 max-h-[90vh] overflow-y-auto">
                         <h2 className="text-2xl font-black text-slate-900 tracking-tighter uppercase italic mb-8">{isEditing ? 'Edit Schedule' : 'Schedule New Exam'}</h2>
                         
                         <form onSubmit={handleSubmit} className="space-y-6">
@@ -229,7 +246,21 @@ const OrgAdminSchedules = () => {
                                 />
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Target Department Restriction</label>
+                                <select
+                                    className="w-full bg-slate-50 border-2 border-transparent rounded-[20px] py-4 px-6 text-sm font-bold text-slate-900 focus:bg-white focus:border-brand-600 outline-none transition-all appearance-none"
+                                    value={form.department}
+                                    onChange={e => setForm({ ...form, department: e.target.value })}
+                                >
+                                    <option value="">Global Exam (All Departments)</option>
+                                    {departments.map(dept => (
+                                        <option key={dept._id} value={dept._id}>{dept.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Duration (Min)</label>
                                     <input
@@ -267,7 +298,7 @@ const OrgAdminSchedules = () => {
                                 </div>
                             )}
 
-                            <div className="pt-6 flex gap-4">
+                            <div className="pt-4 flex gap-4">
                                 <button
                                     type="button"
                                     onClick={() => setShowModal(false)}

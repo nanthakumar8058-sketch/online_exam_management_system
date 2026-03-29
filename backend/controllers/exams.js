@@ -16,9 +16,14 @@ exports.getExams = async (req, res, next) => {
       queryObj.organization = req.user.organization;
     }
 
-    // If student, only show upcoming, ongoing, or completed. 
-    // In a real scenario we'd check if they are assigned.
-    // For now we just get the organization exams.
+    // If student, restrict to exams mapped to their department or open to all.
+    if (req.user.role === 'student' && req.user.department) {
+      queryObj.$or = [
+        { department: req.user.department },
+        { department: null },
+        { department: { $exists: false } }
+      ];
+    }
 
     const exams = await Exam.find(queryObj).sort({ scheduledDate: 1 }).populate('questions');
     res.status(200).json({ success: true, count: exams.length, data: exams });

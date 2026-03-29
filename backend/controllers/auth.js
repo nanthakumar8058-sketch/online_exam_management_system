@@ -137,7 +137,11 @@ exports.updateDetails = async (req, res, next) => {
   try {
     const fieldsToUpdate = {
       name: req.body.name,
-      email: req.body.email
+      email: req.body.email,
+      phone: req.body.phone,
+      dateOfBirth: req.body.dateOfBirth,
+      yearOfStudy: req.body.yearOfStudy,
+      yearOfExperience: req.body.yearOfExperience
     };
 
     const user = await User.findByIdAndUpdate(req.user.id, fieldsToUpdate, {
@@ -193,7 +197,13 @@ const sendTokenResponse = (user, statusCode, res) => {
       id: user._id,
       email: user.email,
       name: user.name,
-      role: user.role
+      role: user.role,
+      phone: user.phone || '',
+      dateOfBirth: user.dateOfBirth || '',
+      yearOfStudy: user.yearOfStudy || '',
+      yearOfExperience: user.yearOfExperience || '',
+      employeeId: user.employeeId || '',
+      registerNumber: user.registerNumber || ''
     }
   });
 };
