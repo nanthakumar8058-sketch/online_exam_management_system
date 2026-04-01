@@ -403,19 +403,13 @@ const ExamWindow = () => {
         {/* HUD Sidebar */}
         <aside className="w-full lg:w-[400px] space-y-8">
           <div className="glass-dark rounded-[40px] p-8 border border-white/10 overflow-hidden relative group">
-            {exam?.settings?.requireCamera && <CameraProctor 
+            <CameraProctor 
                 onViolation={handleViolation} 
                 socket={socket} 
                 userEmail={user.email} 
                 examName={exam.name}
                 examId={id} 
-              />}
-            {!exam?.settings?.requireCamera && (
-              <div className="aspect-video bg-slate-900 rounded-3xl flex flex-col items-center justify-center text-slate-700 gap-4 border border-white/5">
-                <Camera size={48} className="opacity-10" />
-                <p className="text-[10px] font-black uppercase tracking-widest opacity-40 text-center">Tactical Oversight<br />System Disengaged</p>
-              </div>
-            )}
+              />
           </div>
 
           <div className="glass-dark rounded-[40px] p-10 border border-white/10 shadow-2xl">
