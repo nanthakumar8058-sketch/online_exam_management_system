@@ -27,6 +27,7 @@ import Monitor from './pages/invigilator/Monitor';
 import StaffQuestions from './pages/invigilator/StaffQuestions';
 import StaffSchedules from './pages/invigilator/Schedules';
 import StaffDepartments from './pages/invigilator/Departments';
+import StaffDepartmentDetails from './pages/invigilator/DepartmentDetails';
 
 // Org Admin
 import OrgAdminDashboard from './pages/org_admin/Dashboard';
@@ -85,6 +86,7 @@ function App() {
             <Route path="staff/monitor" element={<Monitor />} />
             <Route path="staff/schedules" element={<StaffSchedules />} />
             <Route path="staff/departments" element={<StaffDepartments />} />
+            <Route path="staff/departments/:id" element={<StaffDepartmentDetails />} />
             <Route path="staff/exams/:id/questions" element={<ExamQuestions />} />
 
             {/* Org Admin Routes */}

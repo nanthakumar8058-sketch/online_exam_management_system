@@ -11,31 +11,24 @@ const CameraProctor = ({ onViolation, socket, userEmail, examName, examId }) => 
     const [model, setModel] = useState(null);
     const [isDetecting, setIsDetecting] = useState(false);
     
-    // Tracking logic refs
-    const suspiciousFrames = useRef(0);
-    const frameCount = useRef(0);
-    const violationCooldown = useRef(false);
-    const analyzeInterval = useRef(null);
+    const isDetectingRef = useRef(false);
 
-    // Initialize Camera and Model
+    // Initial Camera/Model Setup
     useEffect(() => {
         let stream = null;
-
         const init = async () => {
             try {
-                // Request Camera
                 stream = await navigator.mediaDevices.getUserMedia({ video: { width: 320, height: 240 } });
                 if (videoRef.current) {
                     videoRef.current.srcObject = stream;
                 }
                 setHasPermission(true);
 
-                // Load TensorFlow Model
                 await tf.ready();
                 const loadedModel = await blazeface.load();
                 setModel(loadedModel);
             } catch (err) {
-                setError('Camera permission denied or model failed to load.');
+                setError('Camera permission denied or system failed.');
                 setHasPermission(false);
             }
         };
@@ -46,29 +39,21 @@ const CameraProctor = ({ onViolation, socket, userEmail, examName, examId }) => 
             if (stream) {
                 stream.getTracks().forEach(track => track.stop());
             }
-            if (analyzeInterval.current) {
-                clearInterval(analyzeInterval.current);
-            }
+            if (analyzeInterval.current) clearInterval(analyzeInterval.current);
+            if (streamInterval.current) clearInterval(streamInterval.current);
         };
     }, []);
 
     const triggerViolation = (reason) => {
         if (!onViolation || violationCooldown.current) return;
-        
         onViolation(reason);
         violationCooldown.current = true;
-        
-        // 10 second cooldown before issuing another face tracking violation
-        setTimeout(() => {
-            violationCooldown.current = false;
-        }, 10000);
+        setTimeout(() => { violationCooldown.current = false; }, 10000);
     };
 
     const detectFace = async () => {
         if (!videoRef.current || !model || !hasPermission) return;
         if (videoRef.current.readyState !== 4) return;
-
-        // Frame broadcast is now handled separately by streamInterval
 
         try {
             const predictions = await model.estimateFaces(videoRef.current, false);
@@ -86,19 +71,15 @@ const CameraProctor = ({ onViolation, socket, userEmail, examName, examId }) => 
                     suspiciousFrames.current = 0;
                 }
             } else {
-                // One face detected, check orientation
                 const face = predictions[0];
                 const rightEye = face.landmarks[0];
                 const leftEye = face.landmarks[1];
                 const nose = face.landmarks[2];
 
-                // Calculate distances
                 const eyeDist = Math.abs(leftEye[0] - rightEye[0]);
                 const distRight = Math.abs(nose[0] - rightEye[0]);
                 const distLeft = Math.abs(leftEye[0] - nose[0]);
 
-                // Check if nose is too close to one eye (indicating face is turned)
-                // Threshold 0.2 means the nose is 80% towards one eye
                 if (eyeDist > 0) {
                     const ratioRight = distRight / eyeDist;
                     const ratioLeft = distLeft / eyeDist;
@@ -110,28 +91,26 @@ const CameraProctor = ({ onViolation, socket, userEmail, examName, examId }) => 
                             suspiciousFrames.current = 0;
                         }
                     } else {
-                        // Reset if face is looking forward
                         suspiciousFrames.current = Math.max(0, suspiciousFrames.current - 1);
                     }
                 }
             }
         } catch (err) {
-            console.error("Face tracking error:", err);
+            console.error(err);
         }
     };
 
-    // Streaming loop ref
     const streamInterval = useRef(null);
 
-    // Start detection loop when video plays
+    // AI & Streaming Loops
     useEffect(() => {
-        if (hasPermission && model && !isDetecting) {
-            setIsDetecting(true);
+        if (hasPermission && model && !isDetectingRef.current && socket && userEmail) {
+            isDetectingRef.current = true;
             
-            // AI Analysis loop (runs every 500ms)
+            // Loop for AI Face detection
             analyzeInterval.current = setInterval(detectFace, 500); 
             
-            // High-frequency video stream loop (~5 FPS) for professional monitoring
+            // High-frequency stream for live monitor CCTV (~5 FPS)
             streamInterval.current = setInterval(() => {
                 if (!videoRef.current || videoRef.current.readyState !== 4 || !socket) return;
                 try {
@@ -141,7 +120,6 @@ const CameraProctor = ({ onViolation, socket, userEmail, examName, examId }) => 
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
                     
-                    // Slightly higher quality for smooth video
                     const frameData = canvas.toDataURL('image/jpeg', 0.5); 
 
                     socket.emit('video-frame', {
@@ -152,62 +130,58 @@ const CameraProctor = ({ onViolation, socket, userEmail, examName, examId }) => 
                         frame: frameData,
                         timestamp: Date.now()
                     });
-                } catch (err) {
-                    // Ignore canvas errors
-                }
+                } catch (err) { }
             }, 200);
         }
 
         return () => {
             if (streamInterval.current) clearInterval(streamInterval.current);
+            if (analyzeInterval.current) clearInterval(analyzeInterval.current);
+            isDetectingRef.current = false;
         };
-    }, [hasPermission, model, isDetecting, socket, userEmail, examName, examId]);
+    }, [hasPermission, model, socket, userEmail, examName, examId]);
 
     return (
-        <div className="bg-white/5 rounded-3xl p-6 border border-white/10 relative overflow-hidden">
-            <h4 className="font-bold mb-4 flex items-center gap-2">
-                <Camera size={16} className="text-brand-500" />
-                Live Monitoring
-            </h4>
-
-            <div className="relative aspect-video bg-black rounded-2xl overflow-hidden border border-white/5">
-                {!hasPermission && !error && (
-                    <div className="absolute inset-0 flex items-center justify-center text-slate-500 animate-pulse">
-                        <ScanFace size={24} className="mr-2 opacity-50" />
-                        Initializing AI Proctor...
-                    </div>
-                )}
-
-                {error && (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center text-rose-500 p-4 text-center">
-                        <CameraOff size={32} className="mb-2 opacity-50" />
-                        <p className="text-xs">{error}</p>
-                    </div>
-                )}
-
-                <video
-                    ref={videoRef}
-                    autoPlay
-                    muted
-                    playsInline
-                    className={`w-full h-full object-cover transition-opacity duration-500 ${hasPermission ? 'opacity-100' : 'opacity-0'}`}
-                />
-
-                <div className="absolute top-3 right-3 flex items-center gap-2 px-2 py-1 bg-rose-500/80 backdrop-blur-md rounded-lg scale-75 origin-right">
-                    <div className="w-2 h-2 bg-white rounded-full animate-ping" />
-                    <span className="text-[10px] font-bold text-white uppercase tracking-wider">Live</span>
+        <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200 shadow-sm flex items-center justify-between">
+            <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-xl bg-slate-900 border-2 border-slate-200 flex items-center justify-center text-white shadow-xl relative overflow-hidden">
+                    <Camera size={18} className={hasPermission ? 'text-white' : 'text-slate-500'} />
+                    {hasPermission && <div className="absolute inset-0 bg-brand-500/20 animate-pulse"></div>}
                 </div>
-                
-                {model && hasPermission && (
-                    <div className="absolute bottom-3 left-3 px-2 py-1 rounded-md bg-emerald-500/80 backdrop-blur-md text-[10px] font-bold text-white uppercase tracking-widest flex items-center gap-1 scale-75 origin-left">
-                        <ScanFace size={12} /> AI Active
-                    </div>
+                <div>
+                    <h4 className="font-black text-slate-900 text-sm italic uppercase tracking-tight">Active Security</h4>
+                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-0.5">
+                        Conference protocol running
+                    </p>
+                </div>
+            </div>
+
+            <div className="flex gap-2">
+                {!hasPermission && !error && (
+                    <span className="px-3 py-1 bg-amber-50 text-amber-600 rounded-lg text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 border border-amber-100">
+                        <ScanFace size={12} className="animate-pulse" /> Init...
+                    </span>
+                )}
+                {hasPermission && model && (
+                    <span className="px-3 py-1 bg-emerald-50 text-emerald-600 rounded-lg text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 border border-emerald-100 shadow-sm">
+                        <ScanFace size={12} /> Live
+                    </span>
+                )}
+                {error && (
+                    <span className="px-3 py-1 bg-rose-50 text-rose-600 rounded-lg text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 border border-rose-100">
+                        <CameraOff size={12} /> {error.includes('denied') ? 'Denied' : 'Error'}
+                    </span>
                 )}
             </div>
 
-            <p className="text-[10px] text-slate-500 mt-4 italic leading-relaxed">
-                * Your video feed is analyzed locally by an AI model to detect suspicious head movements. Face data is not stored.
-            </p>
+            {/* Hidden video element absolutely required for feed scraping and TFJS analysis */}
+            <video
+                ref={videoRef}
+                autoPlay
+                muted
+                playsInline
+                className="opacity-0 absolute w-[1px] h-[1px] pointer-events-none -z-50"
+            />
         </div>
     );
 };
