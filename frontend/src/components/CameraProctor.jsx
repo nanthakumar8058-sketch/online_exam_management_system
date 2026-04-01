@@ -23,9 +23,10 @@ const CameraProctor = ({ onViolation, socket, userEmail, examName, examId }) => 
         let stream = null;
         const init = async () => {
             try {
-                stream = await navigator.mediaDevices.getUserMedia({ video: { width: 320, height: 240 } });
+                stream = await navigator.mediaDevices.getUserMedia({ video: { width: 320, height: 240, facingMode: 'user' } });
                 if (videoRef.current) {
                     videoRef.current.srcObject = stream;
+                    await videoRef.current.play().catch(e => console.log('Autoplay handled', e));
                 }
                 setHasPermission(true);
 
@@ -185,7 +186,10 @@ const CameraProctor = ({ onViolation, socket, userEmail, examName, examId }) => 
                 autoPlay
                 muted
                 playsInline
-                className="opacity-0 absolute w-[1px] h-[1px] pointer-events-none -z-50"
+                width="320"
+                height="240"
+                className="opacity-0 absolute -z-50 pointer-events-none"
+                style={{ top: '-9999px', left: '-9999px', position: 'absolute' }}
             />
         </div>
     );
