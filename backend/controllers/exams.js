@@ -2,6 +2,7 @@ const Exam = require('../models/Exam');
 const Question = require('../models/Question');
 const Subject = require('../models/Subject');
 const User = require('../models/User');
+const Department = require('../models/Department');
 const emailService = require('../utils/emailService');
 
 // @desc    Get all exams
@@ -62,6 +63,31 @@ exports.createExam = async (req, res, next) => {
     }
 
     const exam = await Exam.create(req.body);
+
+    // Send emails to department members if a department is assigned
+    if (exam.department) {
+      const department = await Department.findById(exam.department);
+      if (department) {
+        const users = await User.find({
+          department: exam.department,
+          role: { $in: ['student', 'staff'] }
+        });
+
+        users.forEach(user => {
+          emailService.sendDepartmentExamNotification(
+            user.email,
+            user.name,
+            user.role,
+            exam.name,
+            exam.subject,
+            exam.scheduledDate,
+            exam.duration,
+            department.name
+          ).catch(err => console.error(`Failed to send exam notification to ${user.email}:`, err.message));
+        });
+      }
+    }
+
     res.status(201).json({ success: true, data: exam });
   } catch (err) {
     res.status(400).json({ success: false, error: err.message });

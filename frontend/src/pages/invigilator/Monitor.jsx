@@ -13,6 +13,9 @@ const StaffMonitor = () => {
   const [activeSessions, setActiveSessions] = useState([]);
   const [socket, setSocket] = useState(null);
   const [currentTime, setCurrentTime] = useState(new Date().toLocaleTimeString('en-US', { hour12: false }));
+  
+  const [fullscreenStudentId, setFullscreenStudentId] = useState(null);
+  const fullscreenStudent = fullscreenStudentId ? activeSessions.find(s => s.id === fullscreenStudentId) : null;
 
   const selectedExamRef = useRef(null);
 
@@ -57,7 +60,11 @@ const StaffMonitor = () => {
     });
 
     newSocket.on('student-alert', (data) => {
-      if (selectedExamRef.current && selectedExamRef.current._id !== data.examId) return;
+      if (selectedExamRef.current) {
+        const isMatch = (data.examId && selectedExamRef.current._id === data.examId) || 
+                        (data.examName && selectedExamRef.current.name === data.examName);
+        if (!isMatch) return;
+      }
 
       setAlerts(prev => [data, ...prev].slice(0, 50));
       setActiveSessions(prev => prev.map(s => s.id === data.studentName ? { ...s, status: 'warning' } : s));
@@ -73,7 +80,11 @@ const StaffMonitor = () => {
     });
 
     newSocket.on('video-frame', (data) => {
-      if (selectedExamRef.current && selectedExamRef.current._id !== data.examId) return;
+      if (selectedExamRef.current) {
+        const isMatch = (data.examId && selectedExamRef.current._id === data.examId) || 
+                        (data.examName && selectedExamRef.current.name === data.examName);
+        if (!isMatch) return;
+      }
 
       setActiveSessions(prev => {
         const exists = prev.find(s => s.id === data.studentId);
@@ -252,6 +263,7 @@ const StaffMonitor = () => {
                                 </div>
                                 <div className="flex gap-2">
                                     <button 
+                                        onClick={() => setFullscreenStudentId(student.id)}
                                         className="h-8 w-8 rounded-xl bg-white/5 text-slate-300 flex items-center justify-center hover:bg-brand-600 hover:text-white transition-colors"
                                         title="Expand Feed"
                                     >
@@ -308,6 +320,50 @@ const StaffMonitor = () => {
               )}
             </div>
         </div>
+        </div>
+      )}
+
+      {/* PROFESSIONAL FOCUS MODE OVERLAY */}
+      {fullscreenStudent && (
+        <div className="fixed inset-0 z-[999] bg-black/95 backdrop-blur-xl flex flex-col p-6 animate-in fade-in zoom-in-95 duration-300">
+            <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-brand-600 rounded-[20px] flex items-center justify-center text-white font-black text-xl shadow-lg border border-white/10">
+                        {fullscreenStudent.email?.[0]?.toUpperCase()}
+                    </div>
+                    <div>
+                        <h2 className="text-3xl font-black text-white tracking-tighter uppercase italic">{fullscreenStudent.email}</h2>
+                        <div className="flex items-center gap-2 mt-1">
+                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-400">Live Secure Stream • Frame {fullscreenStudent.time}</span>
+                        </div>
+                    </div>
+                </div>
+                <div className="flex items-center gap-4">
+                   {fullscreenStudent.status === 'warning' && (
+                       <div className="px-6 py-3 bg-rose-500/20 border border-rose-500/50 rounded-xl text-rose-500 font-black text-xs uppercase tracking-widest flex items-center gap-2 animate-pulse">
+                           <AlertTriangle size={18} /> Active Breach Detected
+                       </div>
+                   )}
+                   <button 
+                       onClick={() => setFullscreenStudentId(null)}
+                       className="px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-[20px] font-black text-xs uppercase tracking-widest transition-all focus:outline-none backdrop-blur-md border border-white/10"
+                   >
+                       Exit Focus Mode
+                   </button>
+                </div>
+            </div>
+            
+            <div className="flex-1 relative bg-[#0a0a0a] rounded-[40px] border border-white/10 overflow-hidden flex items-center justify-center shadow-2xl">
+                {fullscreenStudent.frame ? (
+                   <img src={fullscreenStudent.frame} alt="Student Feed" className="w-full h-full object-contain" />
+                ) : (
+                   <div className="flex flex-col items-center justify-center text-slate-500 gap-4">
+                       <Loader2 size={48} className="animate-spin" />
+                       <span className="text-sm font-black uppercase tracking-[0.2em]">Acquiring Feed...</span>
+                   </div>
+                )}
+            </div>
         </div>
       )}
     </div>

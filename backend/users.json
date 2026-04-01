@@ -1,0 +1,22 @@
+[
+  {
+    "email": "nanthakumar@admin.com",
+    "role": "admin"
+  },
+  {
+    "email": "nanthakumar8721@gmail.com",
+    "role": "org_admin"
+  },
+  {
+    "email": "nanthakumar654321@gmail.com",
+    "role": "student"
+  },
+  {
+    "email": "mathan05502@gmail.com",
+    "role": "student"
+  },
+  {
+    "email": "nanthakumar8058@gmail.com",
+    "role": "staff"
+  }
+]

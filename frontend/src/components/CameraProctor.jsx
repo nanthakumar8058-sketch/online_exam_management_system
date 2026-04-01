@@ -68,29 +68,7 @@ const CameraProctor = ({ onViolation, socket, userEmail, examName, examId }) => 
         if (!videoRef.current || !model || !hasPermission) return;
         if (videoRef.current.readyState !== 4) return;
 
-        // Broadcast video frame to monitoring staff
-        frameCount.current += 1;
-        if (socket && frameCount.current % 4 === 0) { // Every ~2 seconds
-            try {
-                const canvas = document.createElement('canvas');
-                canvas.width = 320; // Lower resolution for bandwidth
-                canvas.height = 240;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
-                const frameData = canvas.toDataURL('image/jpeg', 0.4); // 40% quality
-
-                socket.emit('video-frame', {
-                    examId,
-                    studentId: userEmail,
-                    studentEmail: userEmail,
-                    examName,
-                    frame: frameData,
-                    timestamp: Date.now()
-                });
-            } catch (err) {
-                // Ignore canvas errors
-            }
-        }
+        // Frame broadcast is now handled separately by streamInterval
 
         try {
             const predictions = await model.estimateFaces(videoRef.current, false);
@@ -142,13 +120,48 @@ const CameraProctor = ({ onViolation, socket, userEmail, examName, examId }) => 
         }
     };
 
+    // Streaming loop ref
+    const streamInterval = useRef(null);
+
     // Start detection loop when video plays
     useEffect(() => {
         if (hasPermission && model && !isDetecting) {
             setIsDetecting(true);
-            analyzeInterval.current = setInterval(detectFace, 500); // Check every 500ms
+            
+            // AI Analysis loop (runs every 500ms)
+            analyzeInterval.current = setInterval(detectFace, 500); 
+            
+            // High-frequency video stream loop (~5 FPS) for professional monitoring
+            streamInterval.current = setInterval(() => {
+                if (!videoRef.current || videoRef.current.readyState !== 4 || !socket) return;
+                try {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = 320; 
+                    canvas.height = 240;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+                    
+                    // Slightly higher quality for smooth video
+                    const frameData = canvas.toDataURL('image/jpeg', 0.5); 
+
+                    socket.emit('video-frame', {
+                        examId,
+                        studentId: userEmail,
+                        studentEmail: userEmail,
+                        examName,
+                        frame: frameData,
+                        timestamp: Date.now()
+                    });
+                } catch (err) {
+                    // Ignore canvas errors
+                }
+            }, 200);
         }
-    }, [hasPermission, model, isDetecting]);
+
+        return () => {
+            if (streamInterval.current) clearInterval(streamInterval.current);
+        };
+    }, [hasPermission, model, isDetecting, socket, userEmail, examName, examId]);
 
     return (
         <div className="bg-white/5 rounded-3xl p-6 border border-white/10 relative overflow-hidden">

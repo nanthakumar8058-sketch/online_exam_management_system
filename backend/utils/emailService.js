@@ -128,3 +128,75 @@ exports.sendForgotPassword = async (email, name, newPassword) => {
     html,
   });
 };
+
+exports.sendDepartmentExamNotification = async (email, name, role, examName, subject, scheduledDate, duration, departmentName) => {
+  const formattedDate = new Date(scheduledDate).toLocaleString('en-IN', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+
+  const roleTitle = role === 'staff' ? 'Faculty Member' : 'Student';
+
+  const message = `Dear ${name},\n\nA new exam has been scheduled for the ${departmentName} department.\n\nExam Details:\nName: ${examName}\nSubject: ${subject}\nScheduled Date: ${formattedDate}\nDuration: ${duration} minutes\n\nPlease ensure you are prepared.\n\nBest Regards,\nExam Administration`;
+
+  const html = `
+    <div style="font-family: 'Inter', Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #1e293b; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+      <div style="background-color: #0f172a; padding: 24px; text-align: center;">
+        <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 600; letter-spacing: 0.5px;">New Exam Scheduled</h1>
+      </div>
+      
+      <div style="padding: 32px 24px; background-color: #ffffff;">
+        <p style="font-size: 16px; line-height: 1.6; margin-top: 0;">Dear <strong>${name}</strong>,</p>
+        <p style="font-size: 16px; line-height: 1.6; color: #475569;">
+          As a registered ${roleTitle} in the <strong>${departmentName}</strong> department, please be advised that a new mandatory examination has been scheduled to your academic calendar.
+        </p>
+
+        <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin: 24px 0;">
+          <h2 style="font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: #64748b; margin-top: 0; margin-bottom: 16px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">Examination Details</h2>
+          
+          <table style="width: 100%; border-collapse: collapse;">
+            <tr>
+              <td style="padding: 8px 0; color: #64748b; font-weight: 500; width: 120px;">Exam Name:</td>
+              <td style="padding: 8px 0; color: #0f172a; font-weight: 600;">${examName}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; color: #64748b; font-weight: 500;">Subject:</td>
+              <td style="padding: 8px 0; color: #0f172a; font-weight: 600;">${subject}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; color: #64748b; font-weight: 500;">Schedule:</td>
+              <td style="padding: 8px 0; color: #0f172a; font-weight: 600;">${formattedDate}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; color: #64748b; font-weight: 500;">Duration:</td>
+              <td style="padding: 8px 0; color: #0f172a; font-weight: 600;">${duration} Minutes</td>
+            </tr>
+          </table>
+        </div>
+
+        <p style="font-size: 15px; line-height: 1.6; color: #475569; margin-bottom: 0;">
+          ${role === 'staff' ? 
+            'Please verify you have the necessary system monitoring tools prepared for invigilation prior to the start time.' : 
+            'Please ensure you are logged into the portal at least 15 minutes before the scheduled start time. Ensure you have a stable internet connection and necessary resources available.'}
+        </p>
+      </div>
+
+      <div style="background-color: #f1f5f9; padding: 20px 24px; text-align: center; border-top: 1px solid #e2e8f0;">
+        <p style="font-size: 13px; color: #64748b; margin: 0;">
+          This is an automated notification from the Academic Examination System.<br>Please do not reply directly to this email.
+        </p>
+      </div>
+    </div>
+  `;
+
+  await sendEmail({
+    email,
+    subject: `Scheduled Examination: ${examName} [${departmentName}]`,
+    message,
+    html,
+  });
+};
