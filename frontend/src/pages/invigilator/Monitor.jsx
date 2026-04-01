@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
 import { Activity, ShieldAlert, User, Clock, AlertTriangle, Send, Cpu, Layout, Eye, ShieldCheck, Zap, Terminal, Wifi, Globe, Maximize2, Camera, Loader2, ArrowLeft, BookOpen, Layers } from 'lucide-react';
 import { toast } from 'react-hot-toast';
-import api from '../../api/axios';
+import api, { SOCKET_URL } from '../../api/axios';
 
 const StaffMonitor = () => {
   const [exams, setExams] = useState([]);
@@ -52,7 +52,7 @@ const StaffMonitor = () => {
     };
     fetchExams();
 
-    const newSocket = io('http://localhost:5000');
+    const newSocket = io(SOCKET_URL);
     setSocket(newSocket);
 
     newSocket.on('connect', () => {

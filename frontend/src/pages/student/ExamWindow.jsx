@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import api from '../../api/axios';
+import api, { SOCKET_URL } from '../../api/axios';
 import { toast } from 'react-hot-toast';
 import {
   ChevronLeft,
@@ -163,7 +163,7 @@ const ExamWindow = () => {
   }, [id, navigate]);
 
   useEffect(() => {
-    const newSocket = io('http://localhost:5000');
+    const newSocket = io(SOCKET_URL);
     setSocket(newSocket);
     return () => newSocket.close();
   }, []);
