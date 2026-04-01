@@ -21,27 +21,27 @@ const Sidebar = ({ collapsed, setCollapsed, mobileMenuOpen, setMobileMenuOpen })
       { name: 'Dashboard', icon: LayoutDashboard, path: '/admin' },
       { name: 'Organizations', icon: Building2, path: '/admin/organizations' },
       { name: 'Users', icon: Users, path: '/admin/users' },
-      { name: 'Settings', icon: Settings, path: '/settings' },
+      { name: 'Profile', icon: Settings, path: '/settings' },
     ],
     student: [
       { name: 'Dashboard', icon: LayoutDashboard, path: '/student' },
       { name: 'My Exams', icon: FileText, path: '/student/exams' },
       { name: 'Results', icon: Activity, path: '/student/results' },
-      { name: 'Settings', icon: Settings, path: '/settings' },
+      { name: 'Profile', icon: Settings, path: '/settings' },
     ],
     staff: [
       { name: 'Dashboard', icon: LayoutDashboard, path: '/staff' },
       { name: 'Manage Logic', icon: BookOpen, path: '/staff/questions' },
       { name: 'Live Monitor', icon: ShieldAlert, path: '/staff/monitor' },
       { name: 'Departments', icon: Building2, path: '/staff/departments' },
-      { name: 'Settings', icon: Settings, path: '/settings' },
+      { name: 'Profile', icon: Settings, path: '/settings' },
     ],
     org_admin: [
       { name: 'Dashboard', icon: LayoutDashboard, path: '/org' },
       { name: 'Schedules', icon: Calendar, path: '/org/schedules' },
       { name: 'Members', icon: Users, path: '/org/members' },
       { name: 'Departments', icon: Building2, path: '/org/departments' },
-      { name: 'Settings', icon: Settings, path: '/settings' },
+      { name: 'Profile', icon: Settings, path: '/settings' },
     ]
   };
 

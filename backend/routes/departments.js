@@ -1,5 +1,5 @@
 const express = require('express');
-const { getDepartments, createDepartment, updateDepartment, deleteDepartment } = require('../controllers/departments');
+const { getDepartments, createDepartment, updateDepartment, deleteDepartment, getDepartmentDetails } = require('../controllers/departments');
 const { protect, authorize } = require('../middleware/auth');
 
 const router = express.Router();
@@ -13,5 +13,8 @@ router.route('/')
 router.route('/:id')
   .put(authorize('org_admin'), updateDepartment)
   .delete(authorize('org_admin'), deleteDepartment);
+
+router.route('/:id/details')
+  .get(authorize('org_admin', 'staff'), getDepartmentDetails);
 
 module.exports = router;

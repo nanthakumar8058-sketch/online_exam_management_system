@@ -54,7 +54,7 @@ const OrgAdminSchedules = () => {
                 toast.success('Exam Schedule Updated');
             } else {
                 const res = await api.post('/exams', payload);
-                setExams([...exams, res.data.data]);
+                setExams([res.data.data, ...exams]);
                 toast.success('Exam Schedule Created');
             }
             setShowModal(false);

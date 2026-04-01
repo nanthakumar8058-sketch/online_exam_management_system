@@ -26,7 +26,7 @@ exports.getExams = async (req, res, next) => {
       ];
     }
 
-    const exams = await Exam.find(queryObj).sort({ scheduledDate: 1 }).populate('questions');
+    const exams = await Exam.find(queryObj).sort({ createdAt: -1 }).populate('questions');
     res.status(200).json({ success: true, count: exams.length, data: exams });
   } catch (err) {
     res.status(400).json({ success: false, error: err.message });

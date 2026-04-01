@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Building2 } from 'lucide-react';
 import api from '../../api/axios';
 import { toast } from 'react-hot-toast';
@@ -6,6 +7,7 @@ import { toast } from 'react-hot-toast';
 const Departments = () => {
   const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchDepartments();
@@ -35,7 +37,7 @@ const Departments = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {departments.map(dept => (
-          <div key={dept._id} className="glass-premium p-6 rounded-3xl border border-white/40 shadow-xl flex flex-col justify-between hover:-translate-y-1 transition-transform cursor-pointer">
+          <div key={dept._id} onClick={() => navigate(`/staff/departments/${dept._id}`)} className="glass-premium p-6 rounded-3xl border border-white/40 shadow-xl flex flex-col justify-between hover:-translate-y-1 transition-transform cursor-pointer">
             <div>
               <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-brand-600 flex items-center justify-center mb-4 shadow-inner">
                 <Building2 size={24} />

@@ -42,7 +42,7 @@ const StaffSchedules = () => {
                 ...form,
                 duration: parseInt(form.duration)
             });
-            setExams([...exams, res.data.data]);
+            setExams([res.data.data, ...exams]);
             setShowModal(false);
             setForm({ name: '', subject: '', duration: '', scheduledDate: '' });
             toast.success('Exam created successfully');

@@ -1,4 +1,6 @@
 const Department = require('../models/Department');
+const Exam = require('../models/Exam');
+const User = require('../models/User');
 
 exports.getDepartments = async (req, res, next) => {
   try {
@@ -42,6 +44,30 @@ exports.deleteDepartment = async (req, res, next) => {
     }
     await department.deleteOne();
     res.status(200).json({ success: true, data: {} });
+  } catch (err) {
+    res.status(400).json({ success: false, error: err.message });
+  }
+};
+
+exports.getDepartmentDetails = async (req, res, next) => {
+  try {
+    const department = await Department.findById(req.params.id);
+    if (!department) return res.status(404).json({ success: false, error: 'Department not found' });
+    if (department.organization.toString() !== req.user.organization.toString()) {
+      return res.status(401).json({ success: false, error: 'Not authorized' });
+    }
+
+    const exams = await Exam.find({ department: req.params.id }).sort({ createdAt: -1 });
+    const students = await User.find({ department: req.params.id, role: 'student' }).select('-password').sort({ name: 1 });
+
+    res.status(200).json({
+      success: true,
+      data: {
+        department,
+        exams,
+        students
+      }
+    });
   } catch (err) {
     res.status(400).json({ success: false, error: err.message });
   }
