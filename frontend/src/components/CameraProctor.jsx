@@ -118,7 +118,7 @@ const CameraProctor = ({ onViolation, socket, userEmail, examName, examId }) => 
             
             // High-frequency stream for live monitor CCTV (~5 FPS)
             streamInterval.current = setInterval(() => {
-                if (!videoRef.current || videoRef.current.readyState !== 4 || !socket) return;
+                if (!videoRef.current || !socket) return;
                 try {
                     const canvas = document.createElement('canvas');
                     canvas.width = 320; 
@@ -181,16 +181,17 @@ const CameraProctor = ({ onViolation, socket, userEmail, examName, examId }) => 
             </div>
 
             {/* Hidden video element absolutely required for feed scraping and TFJS analysis */}
-            <video
-                ref={videoRef}
-                autoPlay
-                muted
-                playsInline
-                width="320"
-                height="240"
-                className="opacity-0 absolute -z-50 pointer-events-none"
-                style={{ top: '-9999px', left: '-9999px', position: 'absolute' }}
-            />
+            <div style={{ width: '1px', height: '1px', overflow: 'hidden', position: 'absolute', opacity: 0.01, zIndex: -50 }}>
+                <video
+                    ref={videoRef}
+                    autoPlay
+                    muted
+                    playsInline
+                    width="320"
+                    height="240"
+                    style={{ position: 'absolute', top: 0, left: 0 }}
+                />
+            </div>
         </div>
     );
 };

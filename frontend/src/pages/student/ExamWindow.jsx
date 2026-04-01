@@ -412,29 +412,7 @@ const ExamWindow = () => {
               />
           </div>
 
-          <div className="glass-dark rounded-[40px] p-10 border border-white/10 shadow-2xl">
-            <h4 className="font-black text-xs uppercase tracking-[0.3em] mb-10 text-slate-500 flex items-center gap-3">
-              <Layers size={16} className="text-brand-500" /> Matrix Navigation
-            </h4>
-            <div className="grid grid-cols-5 gap-4">
-              {exam.questions.map((_, i) => {
-                const isAnswered = answers.some(a => a.questionId === exam.questions[i]._id);
-                const isCurrent = currentIdx === i;
-                return (
-                  <button
-                    key={i}
-                    onClick={() => setCurrentIdx(i)}
-                    className={`w-14 h-14 rounded-2xl flex items-center justify-center font-black text-sm transition-all border-2 ${isCurrent ? 'border-brand-500 bg-brand-600 text-white shadow-lg shadow-brand-900/50 scale-110' :
-                      isAnswered ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
-                        'bg-white/5 text-slate-600 border-transparent hover:border-white/20'
-                      }`}
-                  >
-                    {i + 1}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+
 
           <div className={`rounded-[40px] p-10 border transition-all duration-500 ${violations > 0 ? 'bg-rose-900/20 border-rose-500/30 text-rose-500 animate-pulse' : 'bg-brand-900/10 border-brand-500/20 text-brand-500'}`}>
             <div className="flex items-center gap-4 mb-6">
