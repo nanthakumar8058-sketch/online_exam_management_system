@@ -12,6 +12,11 @@ const CameraProctor = ({ onViolation, socket, userEmail, examName, examId }) => 
     const [isDetecting, setIsDetecting] = useState(false);
     
     const isDetectingRef = useRef(false);
+    
+    // Tracking logic refs
+    const suspiciousFrames = useRef(0);
+    const violationCooldown = useRef(false);
+    const analyzeInterval = useRef(null);
 
     // Initial Camera/Model Setup
     useEffect(() => {
